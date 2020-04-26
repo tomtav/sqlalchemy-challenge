@@ -1,0 +1,115 @@
+{% from "macros.html" import nav_link with context %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>API Reference</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/materialize.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+
+<body>
+    <nav>
+        <div class="nav-wrapper">
+            <a href="#" class="brand-logo">API</a>
+            <ul id="nav-mobile" class="right">
+                <li>{{ nav_link('home', 'Home') }}</li>
+                <li>{{ nav_link('precipitation', 'Percipitation') }}</a></li>
+                <li>{{ nav_link('stations', 'Stations') }}</li>
+                <li>{{ nav_link('temperatures', 'Temperatures') }}</li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+        <h1 class="header">API Reference Index</h1>
+        <hr />
+
+        <div class="card-panel grey lighten-5 z-depth-1">
+            <div class="row valign-wrapper">
+                <div class="col">
+                    <h3 class="header">Percipitation by Date</h3>
+                    <p><a href="/api/v1.0/precipitation">GET /api/v1.0/precipitation</a>
+                    </p>
+                    <span class="black-text">
+                        Returns a collection of precipitation data for the last year in the database.
+                    </span>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="card-panel grey lighten-5 z-depth-1">
+            <div class="row valign-wrapper">
+                <div class="col">
+                    <h3 class="header">All Stations</h3>
+                    <p><a href="/api/v1.0/stations">GET /api/v1.0/stations</a></p>
+                    <span class="black-text">
+                        Returns a collection of all the stations in the database.
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-panel grey lighten-5 z-depth-1">
+            <div class="row valign-wrapper">
+                <div class="col">
+                    <h3 class="header">Temperatures from Most Active Station</h3>
+                    <p><a href="/api/v1.0/tobs">GET /api/v1.0/tobs</a></p>
+                    <span class="black-text">
+                        Returns a collection of temperatures for the most active station (USC00519281) for the last year of data.
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div id="date_range" class="card-panel grey lighten-5 z-depth-1">
+            <div class="row valign-wrapper">
+                <div class="col">
+                    <h3 class="header">Filter By Date Ranges</h3>
+                    <p>
+                        <a href="#date_range">GET /api/v1.0/start_date</a><br />
+                        <a href="#date_range">GET /api/v1.0/start_date/end_date</a>
+                        <p><strong>Dates should by in YYYY-MM-DD format. (ie. 2017-08-23)</strong></p>
+                    </p>
+                    <span class="black-text">
+                        Returns a list of the minimum temperature, the average temperature, and the max temperature for a given start or start-end range.
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-panel grey lighten-5 z-depth-1">
+            <div class="row valign-wrapper">
+                <div class="col">
+                    <h3 class="header">Resources Information</h2>
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td>Response formats</td>
+                                    <td>JSON</td>
+                                </tr>
+                                <tr>
+                                    <td>Requires authentication?</td>
+                                    <td>No </td>
+                                </tr>
+                                <tr>
+                                    <td>Rate limited?</td>
+                                    <td>No</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                </div>
+            </div>
+        </div>
+        <br /><br />
+    </div>
+    <footer class="page-footer">
+        <div class="footer-copyright">
+            <div class="container">
+                © 2020 Copyright
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

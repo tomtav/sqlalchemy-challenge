@@ -8,7 +8,8 @@ from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, func, extract, desc, and_
 
-from flask import Flask, jsonify
+# Python micro web framework
+from flask import Flask, jsonify, render_template, abort
 
 #################################################
 # Database Setup
@@ -40,37 +41,33 @@ class Station(Model):
 # reflect the tables
 Model.prepare(engine, reflect=True)
 
-
 #################################################
 # Flask Setup
 #################################################
 app = Flask(__name__)
 
-
 #################################################
 # Flask Routes
 #################################################
-
-@app.route("/")
-def welcome():
+@app.route('/', methods=['GET'])
+def home():
     """List all available api routes."""
-    return (
-        f"Available Routes:<br/>"
-        f'<a href="/api/v1.0/precipitation">/api/v1.0/precipitation</a><br/>'
-        f'<a href="/api/v1.0/stations">/api/v1.0/stations</a><br/>'
-        f'<a href="/api/v1.0/tobs">/api/v1.0/tobs</a><br/>'
-        f'/api/v1.0/<start> and /api/v1.0/<start>/<end><br/>'
-    )
+    return render_template('index.html')
 
 
-@app.route("/api/v1.0/precipitation")
+@app.route('/api/v1.0/precipitation',  methods=['GET'])
 def precipitation():
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
     """Return a list of dates and percipitation values observed"""
+    # Retrieve last year in the database
+    last_year = session.query( extract('year', func.max(Measurement.date)) ).scalar()
+
     # Query all dates and percipitation values
-    results = session.query(Measurement.date, Measurement.prcp).all()
+    results = session.query(Measurement.date, Measurement.prcp).\
+                      filter(extract('year', Measurement.date) == last_year).\
+                      all()
 
     session.close()
 
@@ -86,7 +83,7 @@ def precipitation():
 
     return jsonify(response)
 
-@app.route("/api/v1.0/stations")
+@app.route('/api/v1.0/stations', methods=['GET'])
 def stations():
     # Create our session (link) from Python to the DB
     session = Session(engine)
@@ -114,15 +111,18 @@ def stations():
 
     return jsonify(response)
 
-@app.route("/api/v1.0/tobs")
-def tobs():
+@app.route('/api/v1.0/tobs', methods=['GET'])
+def temperatures():
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
     """Return a list of dates and temperature values observed"""
     # Calculate the date 1 year ago from the last data point in the database
-    last_date_reported = session.query(func.max(Measurement.date)).scalar()
-    last_year = datetime.strptime(last_date_reported, '%Y-%m-%d') - timedelta(365)
+    last_year = session.query( extract('year', func.max(Measurement.date)) ).scalar()
+
+    # Uncomment the two lines below if you want the previous year data
+    #last_date_reported = session.query(func.max(Measurement.date)).scalar()
+    #last_year = extract('year', datetime.strptime(last_date_reported, '%Y-%m-%d') - timedelta(365))
 
     # Query all dates and temperature values
     station = session.query(Measurement.station, func.count(Measurement.station)).\
@@ -131,8 +131,9 @@ def tobs():
                    first()[0]
 
     results = session.query(Measurement.date, Measurement.tobs).\
-                      filter(Measurement.station == station).\
-                      filter(extract('year', Measurement.date) == extract('year', last_year)).\
+                      filter(and_(Measurement.station == station,
+                                  extract('year', Measurement.date) == last_year)
+                            ).\
                       all()
 
     session.close()
@@ -146,6 +147,49 @@ def tobs():
         obj = {}
         obj[date] = temp
         response.append(obj)
+
+    return jsonify(response)
+
+@app.route('/api/v1.0/<start>',       methods=['GET'])
+@app.route('/api/v1.0/<start>/<end>', methods=['GET'])
+def by_date(start, end=None):
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+
+    """Return a JSON list of minimum, maximum, and average temperatures by date range"""
+
+    start_date = datetime.strptime(start, '%Y-%m-%d')
+
+    if (end == None):
+        results = session.query(
+            Measurement.date,
+            func.min(Measurement.tobs), 
+            func.avg(Measurement.tobs),
+            func.max(Measurement.tobs)
+            ).\
+            group_by(Measurement.date).\
+            filter(Measurement.date >= start_date).\
+            all()
+    else:
+        end_date = datetime.strptime(end, '%Y-%m-%d')
+ 
+        results = session.query(
+                Measurement.date,
+                func.min(Measurement.tobs), 
+                func.avg(Measurement.tobs),
+                func.max(Measurement.tobs)
+            ).\
+            group_by(Measurement.date).\
+            filter(Measurement.date.between(start_date, end_date)).\
+            all()
+
+    #filter(and_(Measurement.date <= end_date, Measurement.date >= start_date)).\
+    session.close()
+
+    if (len(results)):
+        response = [ { row[0]: { 'min': row[1], 'avg': row[2], 'max': row[3] }} for row in results ]
+    else:
+        abort(404)
 
     return jsonify(response)
 

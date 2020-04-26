@@ -1,0 +1,45 @@
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+main {
+    flex: 1 0 auto;
+}
+h1.header {
+    margin: 0;
+    padding-top: 22px;
+    text-align: center;
+}
+h3.header {
+    margin-top: 0;
+}
+.header {
+    color: #ee6e73;
+    font-weight: 300;
+}
+.page-footer {
+    padding-top: 0;
+}
+
+.col p > a {
+    font-size: 20px;
+    text-decoration: none;
+    transition: color 0.5s ease-in-out;
+    transition: font-weight 0.3s ease-in-out;
+}
+
+.col p > a:hover {
+    cursor: pointer;
+    color: #ee6e73;
+    font-weight: bold;
+    /*text-shadow: 1px 1px 1px black;*/
+}
+
+@media only screen and (max-width: 992px) {
+    nav .brand-logo {
+        left: 0px;
+        -webkit-transform: translateX(0px);
+        transform: translateX(0px);
+    }
+}
